@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HASHGRID — Cloud Mining</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --card: #141822;
+    --card-2: #1a202e;
+    --border: #283042;
+    --text: #f3f6fc;
+    --muted: #98a2b6;
+    --gold: #f5b942;
+    --gold-dark: #c98f1d;
+    --green: #22c55e;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 16px 14px 40px;
+  }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .brand {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--gold);
+  }
+  .badge {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(245, 185, 66, 0.14);
+    color: var(--gold);
+    border: 1px solid rgba(245, 185, 66, 0.35);
+    font-weight: 700;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .val {
+    font-size: 19px;
+    font-weight: 800;
+    margin-top: 4px;
+  }
+  .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .coins {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .coin-btn {
+    background: var(--card-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 6px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .coin-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(245, 185, 66, 0.1);
+  }
+  .big-amount {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--gold);
+    margin: 8px 0 4px;
+    word-break: break-all;
+  }
+  .btn {
+    width: 100%;
+    border: 1px solid var(--border);
+    background: var(--card-2);
+    color: var(--text);
+    border-radius: 11px;
+    padding: 11px 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .btn-gold {
+    background: var(--gold);
+    color: #111318;
+    border: none;
+  }
+  .btn-gold:hover {
+    background: var(--gold-dark);
+  }
+  .btn-sm {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 12px;
+    margin-top: 0;
+  }
+  .asic-item {
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+  .asic-item:first-child {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 4px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #0d1017;
+    color: var(--text);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+  .status-msg {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: #86efac;
+    display: none;
+  }
+  .status-msg.err {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="row">
+      <div class="brand">HASHGRID</div>
+      <span class="badge" id="tierBadge">TIER 1 • FREE</span>
+    </div>
+    <button class="btn btn-sm" onclick="toggleAdmin()">ADM</button>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="margin-bottom:0">
+      <div class="label">SHOP USD</div>
+      <div class="val" id="shopUsd">$0.00</div>
+      <div class="sub">Баланс для покупок</div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="label">MINING BTC</div>
+      <div class="val" id="topBtc">0.00000000</div>
+      <div class="sub" id="usdEstimate">~$0.00</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="label">ВАЛЮТА ОТОБРАЖЕНИЯ</div>
+    <div class="coins" style="margin-top:8px;margin-bottom:4px">
+      <button class="coin-btn active" data-coin="BTC" onclick="selectCoin('BTC')">BTC</button>
+      <button class="coin-btn" data-coin="LTC" onclick="selectCoin('LTC')">LTC</button>
+      <button class="coin-btn" data-coin="DOGE" onclick="selectCoin('DOGE')">DOGE</button>
+      <button class="coin-btn" data-coin="TON" onclick="selectCoin('TON')">TON</button>
+    </div>
+    <div class="big-amount" id="coinBalance">0.00000000 BTC</div>
+    <div class="sub" id="speedInfo">Скорость: +0.00001200 BTC/день</div>
+    <div class="sub" id="boostInfo">Буст заданий: выключен</div>
+    <div class="sub" id="refInfo">Активные друзья: 0/3 (+10% бонус)</div>
+
+    <button class="btn btn-gold" onclick="claimStreak()">Забрать ежедневный приз (7 дней)</button>
+    <button class="btn" onclick="claimTask()">Выполнить задание (+10% буст на 2ч / раз в 12ч)</button>
+  </div>
+
+  <div class="card">
+    <div class="label">МАГАЗИН ASIC (ПОКУПКА ЗА SHOP USD)</div>
+
+    <div class="asic-item">
+      <div class="row">
+        <strong>Tier 2 • Pulse Rack</strong>
+        <span class="badge">$10</span>
+      </div>
+      <div class="sub">Порог вывода: 0.00016 BTC • Требуется 3 активных друга</div>
+      <button class="btn btn-gold" onclick="buyAsic(2, 10)">Купить за $10</button>
+    </div>
+
+    <div class="asic-item">
+      <div class="row">
+        <strong>Tier 3 • Forge Vault</strong>
+        <span class="badge">$99</span>
+      </div>
+      <div class="sub">Порог вывода: 0.0016 BTC • Требуется 3 активных друга</div>
+      <button class="btn btn-gold" onclick="buyAsic(3, 99)">Купить за $99</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">ВЫВОД СРЕДСТВ</div>
+    <div class="sub" id="withdrawReq">Условия: Tier 2+ и 3 активных друга и достижение порога</div>
+    <input id="walletInput" type="text" placeholder="Введите адрес кошелька" />
+    <button class="btn btn-gold" onclick="requestWithdraw()">Создать заявку на вывод</button>
+  </div>
+
+  <div class="card" id="adminPanel" style="display:none">
+    <div class="label">АДМИН-ПАНЕЛЬ (ТЕСТ / НАЧИСЛЕНИЕ)</div>
+    <input id="topupAmount" type="number" step="0.01" placeholder="Сумма SHOP USD для начисления (например 10)" />
+    <button class="btn btn-gold" onclick="addShopUsd()">Начислить SHOP USD</button>
+    <button class="btn" onclick="addTestRef()">+1 активный друг (тест 3/3)</button>
+    <button class="btn" onclick="resetState()">Сбросить к нулю ($0.00)</button>
+  </div>
+
+  <div class="status-msg" id="statusBox"></div>
+</div>
+
+<script>
+const STORAGE_KEY = "hashgrid_state_v1";
+const RATES = { BTC: 61500, LTC: 40.7, DOGE: 0.0556, TON: 0.96 };
+const DAILY_BTC = { 1: 0.000012, 2: 0.0000032, 3: 0.0000528 };
+const THRESHOLDS = { 2: 0.00016, 3: 0.0016 };
+const STREAK_REWARDS = [0.0000001, 0.0000002, 0.0000004, 0.0000008, 0.0000016, 0.0000032, 0.0000064];
+
+const DAY_MS = 86400000;
+const TWELVE_H_MS = 43200000;
+const TWO_H_MS = 7200000;
+
+function defaultState() {
+  return {
+    shop_usd: 0,
+    mining_btc: 0,
+    asic_tier: 1,
+    active_refs: 0,
+    streak_day: 0,
+    last_streak: 0,
+    last_task: 0,
+    boost_until: 0,
+    last_tick: Date.now(),
+    coin: "BTC"
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    return { ...defaultState(), ...JSON.parse(raw) };
+  } catch (e) {
+    return defaultState();
+  }
+}
+
+let state = loadState();
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {}
+}
+
+function showMsg(text, isError = false) {
+  const box = document.getElementById("statusBox");
+  box.textContent = text;
+  box.className = isError ? "status-msg err" : "status-msg";
+  box.style.display = "block";
+}
+
+function tickMining() {
+  const now = Date.now();
+  const elapsedSec = Math.max(0, (now - (state.last_tick || now)) / 1000);
+  if (elapsedSec > 0) {
+    const basePerSec = (DAILY_BTC[state.asic_tier] || DAILY_BTC[1]) / 86400;
+    const boostMult = now < (state.boost_until || 0) ? 1.1 : 1.0;
+    const refMult = 1 + (Math.min(state.active_refs, 10) * 0.02);
+    const gained = basePerSec * boostMult * refMult * elapsedSec;
+    state.mining_btc = Number((Number(state.mining_btc || 0) + gained).toFixed(10));
+    state.last_tick = now;
+    saveState();
+  }
+}
+
+function render() {
+  const now = Date.now();
+  const btc = Number(state.mining_btc || 0);
+  const usd = btc * RATES.BTC;
+  const coin = state.coin || "BTC";
+  const coinVal = usd / RATES[coin];
+  const decimals = coin === "DOGE" ? 4 : 8;
+
+  document.getElementById("shopUsd").textContent = "$" + Number(state.shop_usd || 0).toFixed(2);
+  document.getElementById("topBtc").textContent = btc.toFixed(8);
+  document.getElementById("usdEstimate").textContent = "~$" + usd.toFixed(2);
+  document.getElementById("coinBalance").textContent = coinVal.toFixed(decimals) + " " + coin;
+
+  const daily = DAILY_BTC[state.asic_tier] || DAILY_BTC[1];
+  const isBoosted = now < (state.boost_until || 0);
+  document.getElementById("speedInfo").textContent = "Скорость: +" + (daily * (isBoosted ? 1.1 : 1)).toFixed(8) + " BTC/день";
+  document.getElementById("boostInfo").textContent = isBoosted
+    ? "Буст заданий: активен (+10%)"
+    : "Буст заданий: выключен";
+  document.getElementById("refInfo").textContent = "Активные друзья: " + state.active_refs + "/3 (+10% бонус)";
+
+  const tierLabel = state.asic_tier === 3
+    ? "TIER 3 • $99"
+    : state.asic_tier === 2
+      ? "TIER 2 • $10"
+      : "TIER 1 • FREE";
+  document.getElementById("tierBadge").textContent = tierLabel;
+
+  const threshold = THRESHOLDS[state.asic_tier] || 0.00016;
+  document.getElementById("withdrawReq").textContent =
+    "Нужно: Tier 2+, 3 активных друга (сейчас " + state.active_refs + "/3) и от " + threshold + " BTC";
+
+  document.querySelectorAll(".coin-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.coin === coin);
+  });
+}
+
+function selectCoin(coin) {
+  state.coin = coin;
+  saveState();
+  render();
+}
+
+function claimStreak() {
+  tickMining();
+  const now = Date.now();
+  if (state.last_streak && now - state.last_streak < DAY_MS) {
+    return showMsg("Ежедневный приз уже получен сегодня. Попробуйте через 24 часа.", true);
+  }
+  const nextDay = (state.last_streak && now - state.last_streak <= DAY_MS * 2)
+    ? (state.streak_day >= 7 ? 1 : state.streak_day + 1)
+    : 1;
+  const reward = STREAK_REWARDS[nextDay - 1];
+  state.streak_day = nextDay;
+  state.last_streak = now;
+  state.mining_btc = Number((state.mining_btc + reward).toFixed(10));
+  saveState();
+  render();
+  showMsg("Начислено +" + reward + " BTC (День " + nextDay + " из 7).");
+}
+
+function claimTask() {
+  const now = Date.now();
+  if (state.last_task && now - state.last_task < TWELVE_H_MS) {
+    return showMsg("Задание доступно один раз в 12 часов.", true);
+  }
+  state.last_task = now;
+  state.boost_until = now + TWO_H_MS;
+  saveState();
+  render();
+  showMsg("Буст +10% активирован на 2 часа.");
+}
+
+function buyAsic(tier, price) {
+  tickMining();
+  if (Number(state.shop_usd || 0) < price) {
+    return showMsg("Недостаточно SHOP USD для покупки за $" + price + ".", true);
+  }
+  state.shop_usd = Number((state.shop_usd - price).toFixed(2));
+  state.asic_tier = tier;
+  saveState();
+  render();
+  showMsg("Активирован ASIC Tier " + tier + ".");
+}
+
+function requestWithdraw() {
+  tickMining();
+  const wallet = document.getElementById("walletInput").value.trim();
+  if (!wallet) {
+    return showMsg("Укажите адрес кошелька для вывода.", true);
+  }
+  if (state.asic_tier < 2) {
+    return showMsg("Для вывода требуется ASIC Tier 2 ($10) или выше.", true);
+  }
+  if (state.active_refs < 3) {
+    return showMsg("Для вывода требуется минимум 3 активных друга (сейчас " + state.active_refs + "/3).", true);
+  }
+  const threshold = THRESHOLDS[state.asic_tier] || 0.00016;
+  if (state.mining_btc < threshold) {
+    return showMsg("Не достигнут минимальный порог вывода: " + threshold + " BTC.", true);
+  }
+  const amount = state.mining_btc;
+  state.mining_btc = 0;
+  saveState();
+  render();
+  showMsg("Заявка на вывод " + amount.toFixed(8) + " BTC на адрес " + wallet + " сформирована.");
+}
+
+function toggleAdmin() {
+  const el = document.getElementById("adminPanel");
+  el.style.display = el.style.display === "none" ? "block" : "none";
+}
+
+function addShopUsd() {
+  const val = Number(document.getElementById("topupAmount").value);
+  if (!(val > 0)) {
+    return showMsg("Введите положительную сумму в USD.", true);
+  }
+  state.shop_usd = Number((Number(state.shop_usd || 0) + val).toFixed(2));
+  saveState();
+  render();
+  showMsg("Баланс SHOP USD пополнен на $" + val.toFixed(2) + ".");
+}
+
+function addTestRef() {
+  state.active_refs = Number(state.active_refs || 0) + 1;
+  saveState();
+  render();
+  showMsg("Добавлен 1 активный друг (всего: " + state.active_refs + ").");
+}
+
+function resetState() {
+  state = defaultState();
+  saveState();
+  render();
+  showMsg("Состояние сброшено к стартовым значениям ($0.00).");
+}
+
+render();
+setInterval(() => {
+  tickMining();
+  render();
+}, 1000);
+</script>
+</body>
+</html>
